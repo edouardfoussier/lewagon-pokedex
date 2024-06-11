@@ -8,6 +8,9 @@ from pokedex.params import *
 import numpy as np
 import cv2
 import io
+import base64
+from io import BytesIO
+from PIL import Image
 
 app = FastAPI()
 
@@ -71,21 +74,44 @@ async def predict_name(img: UploadFile=File(...)):
     if cv2_img is None:
         raise HTTPException(status_code=400, detail="Invalid image format")
 
-    # Preprocess the image for the model (this might change depending on your model's requirements)
-    img_resized = cv2.resize(cv2_img, (224, 224))  # Resize to the size your model expects
-    img_array = np.expand_dims(img_resized, axis=0)  # Add batch dimension
-    img_array = img_array / 255.0  # Normalize the image
+    # # Preprocess the image for the model (this might change depending on your model's requirements)
+    # img_resized = cv2.resize(cv2_img, (224, 224))  # Resize to the size your model expects
+    # img_array = np.expand_dims(img_resized, axis=0)  # Add batch dimension
+    # img_array = img_array / 255.0  # Normalize the image
     
-    # Make prediction
-    model = app.state.model150
-    assert model is not None
+    # # Make prediction
+    # model = app.state.model150
+    # assert model is not None
     
-    predictions = model.predict(img_array)
-    predicted_label = LABELS_NAME[np.argmax(predictions, axis=1)]
+    # predictions = model.predict(img_array)
+    # number = np.argmax(predictions, axis=1)
+    # predicted_label = LABELS_NAME[number]
     
-    return {"predicted_name": int(predicted_label), "confidence": float(predictions[0][predicted_label])}
+    try:
+        # Load the corresponding image
+        pokemon_img_path = "/Users/edouardfoussier/code/edouardfoussier/08-Projects/lewagon_pokedex/all_data/all_data_name/Abra/4e554e4a0f624656a7b1542b679b6157_jpg.rf.c2998384c90028502e05c110025795a1.jpg"
+        
+        # Verify that the file exists
+        if not os.path.exists(pokemon_img_path):
+            raise FileNotFoundError(f"File not found: {pokemon_img_path}")
 
+        pokemon_img = Image.open(pokemon_img_path)
+        
+        # Convert the image to base64
+        buffered = BytesIO()
+        pokemon_img.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        
+        return {"image": img_str}
+    except FileNotFoundError as fnf_error:
+        return JSONResponse(status_code=404, content={"error": str(fnf_error)})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
     
+    # return {"image": img_str}
+    # return {"predicted_name": int(predicted_label), "confidence": float(predictions[0][predicted_label]), "image": img_str}
+
+
 
 @app.get("/generate")
 def generate():
