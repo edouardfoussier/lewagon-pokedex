@@ -21,7 +21,7 @@ This project was done at Le Wagon in two weeks, during the Data Science Bootcamp
 
 To test the app, go on this website : https://pokemon-generator-1672.streamlit.app/
 
-![Demo](demo.gif)
+[![Demo](demo.gif)](https://pokemon-generator-1672.streamlit.app/)
 
 ## Installation
 First let's clone the repository :
